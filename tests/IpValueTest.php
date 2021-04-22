@@ -10,19 +10,19 @@ class IpValueTest extends TestCase
 {
     public function testConstructor(): void
     {
-        $val = new IpValue('127.0.0.1');
+        $val = IpValue::new('127.0.0.1');
         self::assertSame('127.0.0.1', $val->value());
     }
 
     public function testConstructorException(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new IpValue('just string');
+        IpValue::new('just string');
     }
 
     public function testConstructFailWithObject(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new IpValue(new \stdClass());
+        IpValue::new(new \stdClass());
     }
 }

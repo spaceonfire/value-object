@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace spaceonfire\ValueObject;
 
 use PHPUnit\Framework\TestCase;
+use spaceonfire\ValueObject\Fixtures\FixtureString;
 
 class StringValueTest extends TestCase
 {
-    private function factory($val): StringValue
+    private function factory($val): AbstractStringValue
     {
-        return new class($val) extends StringValue {
-        };
+        return FixtureString::new($val);
     }
 
     public function testConstruct(): void
@@ -19,7 +19,7 @@ class StringValueTest extends TestCase
         $val = $this->factory('Hello');
         self::assertSame('Hello', $val->value());
         self::assertSame('Hello', (string)$val);
-        self::assertSame('"Hello"', json_encode($val));
+        self::assertSame('"Hello"', json_encode($val, JSON_THROW_ON_ERROR));
     }
 
     public function testConstructFromNumber(): void
@@ -27,7 +27,7 @@ class StringValueTest extends TestCase
         $val = $this->factory(12345);
         self::assertSame('12345', $val->value());
         self::assertSame('12345', (string)$val);
-        self::assertSame('"12345"', json_encode($val));
+        self::assertSame('"12345"', json_encode($val, JSON_THROW_ON_ERROR));
     }
 
     public function testConstructFailWithObject(): void
@@ -39,7 +39,7 @@ class StringValueTest extends TestCase
     public function testConstructWithStringable(): void
     {
         $stringable = new class('foo') {
-            private $string;
+            private string $string;
 
             public function __construct(string $string)
             {

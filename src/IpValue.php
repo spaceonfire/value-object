@@ -4,40 +4,16 @@ declare(strict_types=1);
 
 namespace spaceonfire\ValueObject;
 
-use InvalidArgumentException;
-use Throwable;
-use Webmozart\Assert\Assert;
-
-class IpValue extends StringValue
+class IpValue extends AbstractStringValue
 {
-    /**
-     * @inheritDoc
-     */
-    protected function validate($value): bool
+    protected static function validate($value): void
     {
-        $isValid = parent::validate($value);
+        parent::validate($value);
 
-        if ($isValid) {
-            try {
-                Assert::ip($value);
-                return true;
-            } catch (Throwable $e) {
-                return false;
-            }
+        if (false === \filter_var($value, \FILTER_VALIDATE_IP)) {
+            throw new \InvalidArgumentException(
+                \sprintf('%s expected a value to be an IP. Got: %s.', static::class, $value)
+            );
         }
-
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function throwExceptionForInvalidValue(?string $value): void
-    {
-        if (null !== $value) {
-            throw new InvalidArgumentException(sprintf('Expected a value to be an IP. Got "%s"', $value));
-        }
-
-        parent::throwExceptionForInvalidValue($value);
     }
 }

@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace spaceonfire\ValueObject\Date;
 
-use DateTimeInterface;
-use DateTimeZone;
-use InvalidArgumentException;
-use Throwable;
-
 /**
  * Trait DateTimeTrait
  *
@@ -18,61 +13,45 @@ use Throwable;
 trait DateTimeTrait
 {
     /**
-     * Custom DateTime constructor.
      * @param string $time
-     * @param DateTimeZone|null $timezone
+     * @param \DateTimeZone|null $timezone
      */
-    final public function __construct($time = 'now', ?DateTimeZone $timezone = null)
+    final public function __construct($time = 'now', ?\DateTimeZone $timezone = null)
     {
         try {
             parent::__construct($time, $timezone);
-        } catch (Throwable $exception) {
+        } catch (\Throwable $exception) {
             throw new DateException($exception->getMessage(), $exception->getCode(), $exception->getPrevious());
         }
     }
 
-    /**
-     * Returns string representation
-     * @return string
-     */
     public function __toString(): string
     {
         return $this->format('Y-m-d H:i:s');
     }
 
-    /**
-     * DateTime object factory.
-     * @param string|int|float|DateTimeInterface|null $time
-     * @return static
-     */
-    public static function from($time)
+    public static function from($time): self
     {
-        if ($time instanceof DateTimeInterface) {
+        if ($time instanceof static) {
+            return $time;
+        }
+
+        if ($time instanceof \DateTimeInterface) {
             return new static($time->format('Y-m-d H:i:s.u'), $time->getTimezone());
         }
 
-        if (is_numeric($time)) {
+        if (\is_numeric($time)) {
             $time = (int)$time;
             if (DateTimeValueInterface::YEAR >= $time) {
-                $time += time();
+                $time += \time();
             }
-            return (new static('@' . $time))->setTimezone(new DateTimeZone(date_default_timezone_get()));
+            return (new static('@' . $time))->setTimezone(new \DateTimeZone(\date_default_timezone_get()));
         }
 
         // textual or null
         return new static($time ?? 'now');
     }
 
-    /**
-     * Creates DateTime object.
-     * @param int $year
-     * @param int $month
-     * @param int $day
-     * @param int $hour
-     * @param int $minute
-     * @param float $second
-     * @return static
-     */
     public static function fromParts(
         int $year,
         int $month,
@@ -80,37 +59,24 @@ trait DateTimeTrait
         int $hour = 0,
         int $minute = 0,
         float $second = 0.0
-    ) {
-        $s = sprintf('%04d-%02d-%02d %02d:%02d:%02.5f', $year, $month, $day, $hour, $minute, $second);
+    ): self {
+        $s = \sprintf('%04d-%02d-%02d %02d:%02d:%02.5f', $year, $month, $day, $hour, $minute, $second);
+
         if (
             0 > $hour || 23 < $hour ||
             0 > $minute || 59 < $minute ||
             0 > $second || 60 <= $second ||
-            !checkdate($month, $day, $year)
+            !\checkdate($month, $day, $year)
         ) {
-            throw new InvalidArgumentException("Invalid date '${s}'");
+            throw new \InvalidArgumentException(\sprintf('Invalid date: "%s".', $s));
         }
+
         return new static($s);
     }
 
-    /**
-     * Returns new DateTime object formatted according to the specified format.
-     * @param string $format The format the $time parameter should be in
-     * @param string $time
-     * @param string|DateTimeZone $timezone (default timezone is used if null is passed)
-     * @return static|null
-     */
-    public static function createFromFormat($format, $time, $timezone = null)
+    public static function createFromFormat($format, $time, ?\DateTimeZone $timezone = null): ?self
     {
-        if (null === $timezone) {
-            $timezone = new DateTimeZone(date_default_timezone_get());
-        } elseif (is_string($timezone)) {
-            $timezone = new DateTimeZone($timezone);
-        } elseif (!$timezone instanceof DateTimeZone) {
-            throw new InvalidArgumentException('Invalid timezone given');
-        }
-
-        $date = parent::createFromFormat($format, $time, $timezone);
+        $date = parent::createFromFormat($format, $time, $timezone ?? new \DateTimeZone(\date_default_timezone_get()));
         return $date ? static::from($date) : null;
     }
 

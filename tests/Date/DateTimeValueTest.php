@@ -2,38 +2,30 @@
 
 declare(strict_types=1);
 
-namespace spaceonfire\ValueObject;
+namespace spaceonfire\ValueObject\Date;
 
-use DateTime;
-use DateTimeZone;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use spaceonfire\ValueObject\Date\DateException;
-use spaceonfire\ValueObject\Date\DateTimeValue;
 
 class DateTimeValueTest extends TestCase
 {
-    /**
-     * @var string
-     */
-    private static $oldTZ;
+    private static ?string $oldTZ = null;
 
     public static function setUpBeforeClass(): void
     {
-        self::$oldTZ = date_default_timezone_get();
-        date_default_timezone_set('UTC');
+        self::$oldTZ = \date_default_timezone_get();
+        \date_default_timezone_set('UTC');
     }
 
     public static function tearDownAfterClass(): void
     {
-        date_default_timezone_set(self::$oldTZ);
+        \date_default_timezone_set(self::$oldTZ);
     }
 
     public function testConstructor(): void
     {
-        self::assertSame((new DateTime())->getTimestamp(), (new DateTimeValue())->getTimestamp());
+        self::assertSame((new \DateTime())->getTimestamp(), (new DateTimeValue())->getTimestamp());
         self::assertSame(
-            (new DateTime('2000-01-01'))->getTimestamp(),
+            (new \DateTime('2000-01-01'))->getTimestamp(),
             (new DateTimeValue('2000-01-01'))->getTimestamp()
         );
     }
@@ -49,7 +41,7 @@ class DateTimeValueTest extends TestCase
      */
     public function testJson(): void
     {
-        self::assertSame('"1978-01-23T10:40:00+00:00"', json_encode(DateTimeValue::from(254400000)));
+        self::assertSame('"1978-01-23T10:40:00+00:00"', \json_encode(DateTimeValue::from(254_400_000), JSON_THROW_ON_ERROR));
     }
 
     /**
@@ -78,23 +70,14 @@ class DateTimeValueTest extends TestCase
     {
         self::assertInstanceOf(
             DateTimeValue::class,
-            DateTimeValue::createFromFormat('Y-m-d H:i:s', '2050-08-13 10:40:00', new DateTimeZone('UTC'))
+            DateTimeValue::createFromFormat('Y-m-d H:i:s', '2050-08-13 10:40:00', new \DateTimeZone('UTC'))
         );
 
         self::assertSame('UTC', DateTimeValue::createFromFormat('Y', '2050')->getTimezone()->getName());
         self::assertSame(
             'Europe/Moscow',
-            DateTimeValue::createFromFormat('Y', '2050', 'Europe/Moscow')->getTimezone()->getName()
+            DateTimeValue::createFromFormat('Y', '2050', new \DateTimeZone('Europe/Moscow'))->getTimezone()->getName()
         );
-    }
-
-    /**
-     * @see https://github.com/nette/utils/blob/master/tests/Utils/DateTime.createFromFormat.phpt
-     */
-    public function testCreateFromFormatTimezoneException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        DateTimeValue::createFromFormat('Y-m-d H:i:s', '2050-08-13 10:40:00', 5);
     }
 
     /**
@@ -102,33 +85,36 @@ class DateTimeValueTest extends TestCase
      */
     public function testFrom(): void
     {
-        self::assertSame('1978-01-23 10:40:00', (string)DateTimeValue::from(254400000));
-        self::assertSame('1978-01-23 10:40:00', (string)(new DateTimeValue())->setTimestamp(254400000));
-        self::assertSame(254400000, DateTimeValue::from(254400000)->getTimestamp());
+        self::assertSame('1978-01-23 10:40:00', (string)DateTimeValue::from(254_400_000));
+        self::assertSame('1978-01-23 10:40:00', (string)(new DateTimeValue())->setTimestamp(254_400_000));
+        self::assertSame(254_400_000, DateTimeValue::from(254_400_000)->getTimestamp());
 
         // 64 bit
-        self::assertSame('2050-08-13 10:40:00', (string)DateTimeValue::from(2544000000));
-        self::assertSame('2050-08-13 10:40:00', (string)(new DateTimeValue())->setTimestamp(2544000000));
+        self::assertSame('2050-08-13 10:40:00', (string)DateTimeValue::from(2_544_000_000));
+        self::assertSame('2050-08-13 10:40:00', (string)(new DateTimeValue())->setTimestamp(2_544_000_000));
         self::assertSame(
-            is_int(2544000000) ? 2544000000 : '2544000000',
-            DateTimeValue::from(2544000000)->getTimestamp()
+            is_int(2_544_000_000) ? 2_544_000_000 : '2544000000',
+            DateTimeValue::from(2_544_000_000)->getTimestamp()
         );
 
         self::assertSame('1978-05-05 00:00:00', (string)DateTimeValue::from('1978-05-05'));
 
-        self::assertSame((new DateTime())->format('Y-m-d H:i:s'), (string)DateTimeValue::from(null));
+        self::assertSame((new \DateTime())->format('Y-m-d H:i:s'), (string)DateTimeValue::from(null));
 
         self::assertSame(
-            (new DateTime())->modify('+1 day')->format('Y-m-d H:i:s'),
+            (new \DateTime())->modify('+1 day')->format('Y-m-d H:i:s'),
             (string)DateTimeValue::from(86400)
         );
 
-        self::assertInstanceOf(DateTimeValue::class, DateTimeValue::from(new DateTime('1978-05-05')));
+        self::assertInstanceOf(DateTimeValue::class, DateTimeValue::from(new \DateTime('1978-05-05')));
 
         self::assertSame(
             '1978-05-05 12:00:00.123450',
             DateTimeValue::from(new DateTimeValue('1978-05-05 12:00:00.12345'))->format('Y-m-d H:i:s.u')
         );
+
+        $now = DateTimeValue::from('now');
+        self::assertSame($now, DateTimeValue::from($now));
     }
 
     /**
@@ -175,8 +161,8 @@ class DateTimeValueTest extends TestCase
      */
     public function testFromPartsExceptions(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Invalid date '1985-02-29 00:00:0.00000'");
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid date: "1985-02-29 00:00:0.00000".');
         DateTimeValue::fromParts(1985, 2, 29);
     }
 }

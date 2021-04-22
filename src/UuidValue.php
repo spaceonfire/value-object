@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace spaceonfire\ValueObject;
 
-use InvalidArgumentException;
-use Ramsey\Uuid\Uuid;
+use Symfony\Component\Uid\Uuid;
 
-class UuidValue extends StringValue
+class UuidValue extends AbstractStringValue
 {
     /**
      * Creates new random uuid VO
@@ -15,26 +14,15 @@ class UuidValue extends StringValue
      */
     public static function random(): self
     {
-        return new static(Uuid::uuid4()->toString());
+        return static::new(Uuid::v4());
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function validate($value): bool
+    protected static function validate($value): void
     {
-        return parent::validate($value) && Uuid::isValid((string)$value);
-    }
+        parent::validate($value);
 
-    /**
-     * @inheritDoc
-     */
-    protected function throwExceptionForInvalidValue(?string $value): void
-    {
-        if (null !== $value) {
-            throw new InvalidArgumentException(sprintf('Expected a value to be a valid uuid. Got "%s"', $value));
+        if (!Uuid::isValid((string)$value)) {
+            throw new \InvalidArgumentException(\sprintf('Expected a value to be a valid uuid. Got: %s.', $value));
         }
-
-        parent::throwExceptionForInvalidValue($value);
     }
 }

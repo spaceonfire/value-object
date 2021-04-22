@@ -4,47 +4,45 @@ declare(strict_types=1);
 
 namespace spaceonfire\ValueObject;
 
-use GuzzleHttp\Psr7\Uri;
-use InvalidArgumentException;
+use Http\Discovery\Psr17FactoryDiscovery;
 use Psr\Http\Message\UriInterface;
 
-class UriValue extends BaseValueObject
+class UriValue extends AbstractValueObject
 {
-    /**
-     * @inheritDoc
-     * @return UriInterface
-     */
     public function value(): UriInterface
     {
         return parent::value();
     }
 
-    /**
-     * @inheritDoc
-     */
-    protected function validate($value): bool
+    public function jsonSerialize(): string
     {
-        return (is_string($value) && false !== parse_url($value)) || $value instanceof UriInterface;
+        return (string)$this->value;
     }
 
-    /**
-     * @inheritDoc
-     * @return UriInterface
-     */
-    protected function cast($value): UriInterface
+    protected static function validate($value): void
     {
-        return !$value instanceof UriInterface ? new Uri($value) : $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function throwExceptionForInvalidValue(?string $value): void
-    {
-        if (null !== $value) {
-            throw new InvalidArgumentException(sprintf('Expected a value to be a valid uri. Got "%s"', $value));
+        if ($value instanceof UriInterface) {
+            return;
         }
 
-        parent::throwExceptionForInvalidValue($value);
+        if (
+            (\is_string($value) || (\is_object($value) && \method_exists($value, '__toString')))
+            && false !== \parse_url((string)$value)
+        ) {
+            return;
+        }
+
+        throw new \InvalidArgumentException(\sprintf(
+            '%s expected a value to be a valid uri. Got: %s.',
+            static::class,
+            self::checkValueType($value) ? $value : \get_debug_type($value)
+        ));
+    }
+
+    protected static function cast($value): UriInterface
+    {
+        return $value instanceof UriInterface
+            ? $value
+            : Psr17FactoryDiscovery::findUriFactory()->createUri((string)$value);
     }
 }

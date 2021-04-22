@@ -10,19 +10,19 @@ class EmailValueTest extends TestCase
 {
     public function testConstructor(): void
     {
-        $val = new EmailValue('test@test.test');
+        $val = EmailValue::new('test@test.test');
         self::assertSame('test@test.test', $val->value());
     }
 
     public function testConstructFail(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new EmailValue('just string');
+        EmailValue::new('just string');
     }
 
     public function testConstructFailWithObject(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new EmailValue(new \stdClass());
+        EmailValue::new(new \stdClass());
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "spaceonfire/value-object",
-  "type": "library",
   "description": "Value Object library for PHP",
+  "type": "library",
   "keywords": [
     "value-object",
     "string",
@@ -23,20 +23,21 @@
     }
   ],
   "require": {
-    "php": "^7.2|^8.0",
+    "php": "^7.4|^8.0",
     "ext-json": "*",
-    "guzzlehttp/psr7": "^1.6",
-    "jawira/case-converter": "^3.4",
-    "spaceonfire/laminas-hydrator-bridge": "^2.5",
-    "webmozart/assert": "^1.6"
+    "php-http/discovery": "^1.11",
+    "psr/http-message": "^1.0",
+    "spaceonfire/common": "^3.0",
+    "symfony/string": "^5.2"
   },
   "require-dev": {
-    "laminas/laminas-hydrator": "^3.0|^4.0",
-    "ramsey/uuid": "^3.9|^4.0"
+    "nyholm/psr7": "^1.4",
+    "phpunit/phpunit": "^9.5",
+    "symfony/uid": "^5.2"
   },
   "suggest": {
-    "laminas/laminas-hydrator": "There is hydrator strategy integration for this package",
-    "ramsey/uuid": "To use UuidValue"
+    "symfony/uid": "To use UuidValue",
+    "psr/http-factory": "To use UriValue"
   },
   "autoload": {
     "psr-4": {
@@ -46,11 +47,6 @@
   "autoload-dev": {
     "psr-4": {
       "spaceonfire\\ValueObject\\": "tests"
-    }
-  },
-  "extra": {
-    "branch-alias": {
-      "dev-master": "2.5-dev"
     }
   },
   "config": {

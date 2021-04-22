@@ -4,42 +4,16 @@ declare(strict_types=1);
 
 namespace spaceonfire\ValueObject;
 
-use InvalidArgumentException;
-use Throwable;
-use Webmozart\Assert\Assert;
-
-class EmailValue extends StringValue
+class EmailValue extends AbstractStringValue
 {
-    /**
-     * @inheritDoc
-     */
-    protected function validate($value): bool
+    protected static function validate($value): void
     {
-        $isValid = parent::validate($value);
+        parent::validate($value);
 
-        if ($isValid) {
-            try {
-                Assert::email($value);
-                return true;
-            } catch (Throwable $e) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function throwExceptionForInvalidValue(?string $value): void
-    {
-        if (null !== $value) {
-            throw new InvalidArgumentException(
-                sprintf('Expected a value to be a valid e-mail address. Got "%s"', $value)
+        if (false === \filter_var($value, \FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException(
+                \sprintf('Expected a value to be a valid e-mail address. Got: %s.', $value)
             );
         }
-
-        parent::throwExceptionForInvalidValue($value);
     }
 }

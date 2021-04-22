@@ -18,8 +18,9 @@ $ composer require spaceonfire/value-object
 ## Usage
 
 ```php
-$int = new class(10) extends \spaceonfire\ValueObject\IntValue {};
-\Webmozart\Assert\Assert::same($int->value(), 10);
+use spaceonfire\ValueObject\AbstractIntValue;
+$int = new class(10) extends AbstractIntValue {};
+\assert($int->value() === 10);
 ```
 
 ## Change log
